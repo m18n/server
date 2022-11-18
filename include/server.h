@@ -4,20 +4,20 @@
 #include<stdbool.h>
 #include"packs.h"
 #include"core.h"
-typedef struct arraypack{
-    pack_t* packs;
+typedef struct sv_arraypack{
+    sv_pack_t* packs;
     bool* getpaks;
     int sizepacks;
     pthread_mutex_t mtpack;
     int upper;
-}arraypack_t;
-void CreateArrayPack(arraypack_t* array);
-void InitArrayPack(arraypack_t* array,int sizepack);
-pack_t* arraypack_getelement(arraypack_t* array);
-void arraypack_finishpack(arraypack_t* array,pack_t* pack);
-void arraypack_process(v2_t* v);
+}sv_arraypack_t;
+void sv_CreateArrayPack(sv_arraypack_t* array);
+void sv_InitArrayPack(sv_arraypack_t* array,int sizepack);
+sv_pack_t* sv_arraypack_getelement(sv_arraypack_t* array);
+void sv_arraypack_finishpack(sv_arraypack_t* array,sv_pack_t* pack);
+void sv_arraypack_process(sv_v2_t* v);
 
-typedef struct server{
+typedef struct sv_server{
     int sock_f;
     struct sockaddr_in address;
     int port;
@@ -25,15 +25,15 @@ typedef struct server{
     int maxconn;
     int sizesockets;
     struct pollfd* sockets;
-    user_packs_t* users;
-    arraypack_t arrpack;
-    arrayd_t userpacks;
+    sv_user_packs_t* users;
+    sv_arraypack_t arrpack;
+    sv_arrayd_t userpacks;
     
     int nowconnect;
-}server_t;
-void ServerInit(server_t* serv,int port,int maxconn);
-packreq_t* serv_getpackreq(server_t* serv,int idpack);
-void serv_adduserpacks(server_t* serv,void(*CreatePack)(packreq_t* self),int sizeuserpack,int idpack);
-void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),void(*ClearUser)(user_t*us));
+}sv_server_t;
+void sv_ServerInit(sv_server_t* serv,int port,int maxconn);
+sv_packreq_t* sv_serv_getpackreq(sv_server_t* serv,int idpack);
+void sv_serv_adduserpacks(sv_server_t* serv,void(*CreatePack)(sv_packreq_t* self),int sizeuserpack,int idpack);
+void sv_GetEventsSocket(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_user_t* us),void(*ClearUser)(sv_user_t*us));
 
 

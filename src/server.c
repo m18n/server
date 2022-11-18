@@ -1,14 +1,14 @@
 #include"server.h"
 
-void ServerInit(server_t* serv,int port,int maxconn){
-    InitArrayPack(&serv->arrpack,10000);
+void sv_ServerInit(sv_server_t* serv,int port,int maxconn){
+    sv_InitArrayPack(&serv->arrpack,10000);
     serv->sizesockets=maxconn+1;
     serv->nowconnect=0;
-    InitArrayd(&serv->userpacks,10,sizeof(infopackreq_t));
+    sv_InitArrayd(&serv->userpacks,10,sizeof(sv_infopackreq_t));
     serv->sockets=malloc(serv->sizesockets*sizeof(struct pollfd));
     serv->opt=1;
     serv->port=port;
-    serv->users=malloc(serv->sizesockets*sizeof(user_packs_t));
+    serv->users=malloc(serv->sizesockets*sizeof(sv_user_packs_t));
     serv->maxconn=maxconn;
     if ((serv->sock_f = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket failed");
@@ -39,41 +39,41 @@ void ServerInit(server_t* serv,int port,int maxconn){
     
     printf("CONNECT\n");
 }
-void serv_adduserpacks(server_t* serv,void(*CreatePack)(packreq_t* self),int sizeuserpack,int idpack){
-    infopackreq_t info;
+void sv_serv_adduserpacks(sv_server_t* serv,void(*CreatePack)(sv_packreq_t* self),int sizeuserpack,int idpack){
+    sv_infopackreq_t info;
     info.CreatePack=CreatePack;
     info.idpack=idpack;
     info.sizepack=sizeuserpack;
-    arrayd_addelement(&serv->userpacks,&info);
+    sv_arrayd_addelement(&serv->userpacks,&info);
 }
-packreq_t* serv_getpackreq(server_t* serv,int idpack){
+sv_packreq_t* sv_serv_getpackreq(sv_server_t* serv,int idpack){
     for(int i=0;i<serv->userpacks.realsize;i++){
-        infopackreq_t* info=&serv->userpacks.data[i*sizeof(infopackreq_t)];
+        sv_infopackreq_t* info=&serv->userpacks.data[i*sizeof(sv_infopackreq_t)];
         if(info->idpack==idpack){
-            packreq_t* pack=malloc(info->sizepack);
+            sv_packreq_t* pack=malloc(info->sizepack);
             info->CreatePack(pack);
             return pack;
         }
     }
     return NULL;
 }
-void CreateArrayPack(arraypack_t* array){
+void sv_CreateArrayPack(sv_arraypack_t* array){
     array->packs=NULL;
     array->sizepacks=0;
     array->upper=0;
 }
-void InitArrayPack(arraypack_t* array,int sizepack){
-    CreateArrayPack(array);
+void sv_InitArrayPack(sv_arraypack_t* array,int sizepack){
+    sv_CreateArrayPack(array);
     pthread_mutex_init(&array->mtpack, NULL);
     array->sizepacks=sizepack;
     array->upper=1;
-    array->packs=malloc(sizeof(pack_t)*sizepack);
+    array->packs=malloc(sizeof(sv_pack_t)*sizepack);
     array->getpaks=malloc(sizeof(bool)*sizepack);
     for(int i=0;i<sizepack;i++){
-        CreatePack(&array->packs[i]);
+        sv_CreatePack(&array->packs[i]);
     }
 }
-pack_t* arraypack_getelement(arraypack_t* array){
+sv_pack_t* sv_arraypack_getelement(sv_arraypack_t* array){
     bool search=false;
     pthread_mutex_lock(&array->mtpack);
     for(int i=0;i<array->upper;i++){
@@ -101,10 +101,10 @@ pack_t* arraypack_getelement(arraypack_t* array){
     pthread_mutex_unlock(&array->mtpack);
     return NULL;
 }
-void arraypack_finishpack(arraypack_t* array,pack_t* pack){
+void sv_arraypack_finishpack(sv_arraypack_t* array,sv_pack_t* pack){
     if(pack!=NULL){
         int index=pack-array->packs;
-        DestroyPack(&array->packs[index]);
+        sv_DestroyPack(&array->packs[index]);
         pthread_mutex_lock(&array->mtpack);
        // printf("\nFINISH: %d Up=%d\n\n",index,array->upper);
         array->getpaks[index]=false;
@@ -126,8 +126,8 @@ void arraypack_finishpack(arraypack_t* array,pack_t* pack){
         pthread_mutex_unlock(&array->mtpack);
     }
 }
-void arraypack_process(v2_t* v){
-    arraypack_t* array=v->p1;
+void sv_arraypack_process(sv_v2_t* v){
+    sv_arraypack_t* array=v->p1;
     printf("START PROCESS PACK\n");
     while (true)
     {
@@ -135,10 +135,10 @@ void arraypack_process(v2_t* v){
             if(array->getpaks[i]==true){
                 if(array->packs[i].compile==true){
                     printf("PROCESS PACK\n");
-                    pack_t* p=&array->packs[i];
+                    sv_pack_t* p=&array->packs[i];
                     if(p->pack_req!=NULL)
                         p->pack_req->ProcessPack(p->pack_req,p->user);
-                    arraypack_finishpack(array,p);
+                    sv_arraypack_finishpack(array,p);
                      
                    
                 }
@@ -147,7 +147,7 @@ void arraypack_process(v2_t* v){
     }
 }
 
-void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),void(*ClearUser)(user_t*us)){
+void sv_GetEventsSocket(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_user_t* us),void(*ClearUser)(sv_user_t*us)){
     int addrlen=sizeof(serv->address);
     int conn=-1;
     serv->sockets[0].fd=serv->sock_f;
@@ -156,7 +156,7 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
     
     for(int i=1;i<serv->sizesockets;i++){
         serv->sockets[i].fd=-1;
-        InitUserPacks(&serv->users[i],sizeuser,CreateUsere);
+        sv_InitUserPacks(&serv->users[i],sizeuser,CreateUsere);
     }
     while(1){
         int ret=poll(serv->sockets,serv->sizesockets,-1);
@@ -182,9 +182,9 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                 serv->sockets[j].fd=newconn;
                                 serv->sockets[j].events=POLLIN;
                                 serv->sockets[j].revents=0;
-                                user_t* us=serv->users[j].user;
+                                sv_user_t* us=serv->users[j].user;
                                 serv->users[j].lastpack=NULL;
-                                CreateUser(serv->users[j].user);
+                                sv_CreateUser(serv->users[j].user);
                                 CreateUsere(serv->users[j].user);
                                 serv->users[j].user->pollptr=&serv->sockets[j];
                                 search=true;
@@ -219,7 +219,7 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                 length=recv(serv->sockets[i].fd,data,sizepack,NULL);
                                 if(length>0){
                                     // дані є
-                                    pack_t* pack=arraypack_getelement(&serv->arrpack);
+                                    sv_pack_t* pack=sv_arraypack_getelement(&serv->arrpack);
                                     if(pack==NULL){
                                         //немає місця для пакету
                                         printf("MAX PACK\n");
@@ -229,22 +229,22 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                         
                                         printf("DATA: %s REALSIZE: %d ALLSIZEPACK: %d\n",data,length,sizepack);
                                         if(sizepack!=length){
-                                            InitPack(pack,data,length,sizepack,NULL,serv->users[i].user);
+                                            sv_InitPack(pack,data,length,sizepack,NULL,serv->users[i].user);
                                             serv->users[i].lastpack=pack;
                                         }else{
                                             //повний пакет
                                             char* json=(json_char*)data;
                                             json_value* value = json_parse(json,sizepack);
                                             if(value!=NULL){
-                                                json_object_entry* type=GetNameKey(value,"idpack");
-                                                json_object_entry* index=GetNameKey(value,"indexpack");
+                                                json_object_entry* type=sv_GetNameKey(value,"idpack");
+                                                json_object_entry* index=sv_GetNameKey(value,"indexpack");
                                                 if(type!=NULL&&index!=NULL&&index->value->type==json_integer&&type->value->type==json_integer) {
                                                     int idpack=type->value->u.integer;
                                                     int indexpack=index->value->u.integer;
-                                                    InitPack(pack,data,length,sizepack,value,serv->users[i].user);
+                                                    sv_InitPack(pack,data,length,sizepack,value,serv->users[i].user);
                                                     
                                                     //SetPackFunction(pack,indextype);
-                                                    pack->pack_req=serv_getpackreq(serv,idpack);
+                                                    pack->pack_req=sv_serv_getpackreq(serv,idpack);
                                                     if(pack->pack_req!=NULL){
                                                         bool r=pack->pack_req->JsonToObject(pack->pack_req,value);
                                                         if(r==true){
@@ -253,19 +253,19 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                                         }else{
                                                             printf("ERROR PARSE PACK\n");
                                                             length=0;
-                                                            arraypack_finishpack(&serv->arrpack,pack);
+                                                            sv_arraypack_finishpack(&serv->arrpack,pack);
                                                         }
                                                     }
                                                 }else{
                                                     printf("ERROR ID PACK\n");
                                                     length=0;
                                                     
-                                                    arraypack_finishpack(&serv->arrpack,pack);
+                                                    sv_arraypack_finishpack(&serv->arrpack,pack);
                                                 }
                                             }else{
                                                 printf("ERROR PARSE JSON\n");
                                                 length=0;
-                                                arraypack_finishpack(&serv->arrpack,pack);
+                                                sv_arraypack_finishpack(&serv->arrpack,pack);
                                             }
                                             
                                         }
@@ -279,7 +279,7 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                           
                         }else{
                             // додати дані до минулого пакету
-                            pack_t* lastpack=serv->users[i].lastpack;
+                            sv_pack_t* lastpack=serv->users[i].lastpack;
                             if(lastpack->allsizepack>lastpack->realsizepack){
                                 int size=lastpack->allsizepack-lastpack->realsizepack;
                                 char* start=&lastpack->data[lastpack->realsizepack];
@@ -291,14 +291,14 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                         char* json=(json_char*)serv->users[i].lastpack->data;
                                         json_value* value = json_parse(json,serv->users[i].lastpack->realsizepack);
                                         if(value!=NULL){
-                                            json_object_entry* jidpack=GetNameKey(value,"idpack");
-                                            json_object_entry* jindex=GetNameKey(value,"indexpack");
+                                            json_object_entry* jidpack=sv_GetNameKey(value,"idpack");
+                                            json_object_entry* jindex=sv_GetNameKey(value,"indexpack");
                                             if(jidpack!=NULL&&jindex!=NULL&&jindex->value->type==json_integer&&jidpack->value->type==json_integer) {
                                                 int idpack=jidpack->value->u.integer;
                                                 int indexpack=jindex->value->u.integer;
                                                 //SetPackFunction(serv->users[i].lastpack,indextype);
                                                 serv->users[i].lastpack->json=value;
-                                                serv->users[i].lastpack->pack_req=serv_getpackreq(serv,idpack);
+                                                serv->users[i].lastpack->pack_req=sv_serv_getpackreq(serv,idpack);
                                                 if(serv->users[i].lastpack->pack_req!=NULL){
                                                         bool r=serv->users[i].lastpack->pack_req->JsonToObject(serv->users[i].lastpack->pack_req,value);
                                                     if(r==true){
@@ -331,21 +331,21 @@ void GetEventsSocket(server_t* serv,int sizeuser,void(*CreateUsere)(user_t* us),
                                 printf("Disconnect\n\n\n");
                                 serv->nowconnect--;
                                // int d=u->user->pollptr->fd;
-                                user_disconnect(serv->users[i].user,ClearUser);
+                                sv_user_disconnect(serv->users[i].user,ClearUser);
                                 //d=u->user->pollptr->fd;
                                 //cleardata
                                 if(serv->users[i].lastpack!=NULL){
-                                    arraypack_finishpack(&serv->arrpack,serv->users[i].lastpack);
+                                    sv_arraypack_finishpack(&serv->arrpack,serv->users[i].lastpack);
                                 }
 
                         }else if(length<0){
                                 printf("ERROR READ PACK\n");
                                 serv->nowconnect--;
-                                user_disconnect(serv->users[i].user,ClearUser);
+                                sv_user_disconnect(serv->users[i].user,ClearUser);
                                 
                                 //cleardata
                                  if(serv->users[i].lastpack!=NULL){
-                                    arraypack_finishpack(&serv->arrpack,serv->users[i].lastpack);
+                                    sv_arraypack_finishpack(&serv->arrpack,serv->users[i].lastpack);
                                 }                           
                         }
                     }

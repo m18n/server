@@ -3,53 +3,53 @@
 #include<stdbool.h>
 #include"parser.h"
 #include"core.h"
-typedef struct packreq{
+typedef struct sv_packreq{
     int indexpack;
-    bool(*JsonToObject)(struct packreq* pack,json_value* json);
-    void(*ProcessPack)(struct packreq* pack,user_t* user);
-}packreq_t;
-void CreatePackReq(packreq_t* pack);
-json_construct_t GetPackJson(int idpack);
-json_construct_t GetPackJsonRes(int idpack,int indexpack);
-typedef struct packres{
+    bool(*JsonToObject)(struct sv_packreq* pack,json_value* json);
+    void(*ProcessPack)(struct sv_packreq* pack,sv_user_t* user);
+}sv_packreq_t;
+void sv_CreatePackReq(sv_packreq_t* pack);
+sv_json_construct_t sv_GetPackJson(int idpack);
+sv_json_construct_t sv_GetPackJsonRes(int idpack,int indexpack);
+typedef struct sv_packres{
     int idpack;
-    json_construct_t(*GetJsonPack)(struct packres* pk);
-}packres_t;
-void CreatePackRes(packres_t* pack);
-int sendall(int sock_conn, char *buf, int *len);
-void SendPack(user_t* user,packres_t* pk);
-void SendPackRes(user_t* user,packres_t* pk,packreq_t* pkreq);
+    sv_json_construct_t(*GetJsonPack)(struct sv_packres* pk);
+}sv_packres_t;
+void sv_CreatePackRes(sv_packres_t* pack);
+int sv_sendall(int sock_conn, char *buf, int *len);
+void sv_SendPack(sv_user_t* user,sv_packres_t* pk);
+void sv_SendPackRes(sv_user_t* user,sv_packres_t* pk,sv_packreq_t* pkreq);
 
-typedef struct infopackreq{
+typedef struct sv_infopackreq{
     int sizepack;
     int idpack;
-    void(*CreatePack)(packreq_t* req);
-}infopackreq_t;
-void CreateInfoPackReq(infopackreq_t* self);
+    void(*CreatePack)(sv_packreq_t* req);
+}sv_infopackreq_t;
+void sv_CreateInfoPackReq(sv_infopackreq_t* self);
 
 
-typedef struct pack
+typedef struct sv_pack
 {
     int realsizepack;
     int allsizepack;
     char* data;
     json_value* json;
     bool compile;
-    user_t* user;
-    packreq_t* pack_req;
+    sv_user_t* user;
+    sv_packreq_t* pack_req;
     int idpack;
-}pack_t;
+}sv_pack_t;
 
-void auth(pack_t* pk);
-void CreatePack(pack_t* pack);
-void InitPack(pack_t* pack,char* data,int realsize,int allsize,json_value* values,user_t* user);
-void DestroyPack(pack_t* pack);
+void sv_auth(sv_pack_t* pk);
+void sv_CreatePack(sv_pack_t* pack);
+void sv_InitPack(sv_pack_t* pack,char* data,int realsize,int allsize,json_value* values,sv_user_t* user);
+void sv_DestroyPack(sv_pack_t* pack);
 
 
-typedef struct user_packs{
-    user_t* user;
-    pack_t* lastpack;
+typedef struct sv_user_packs{
+    sv_user_t* user;
+    sv_pack_t* lastpack;
   
-}user_packs_t;
-void CreateUserPacks(user_packs_t* user);
-void InitUserPacks(user_packs_t* user,int sizeuser,void(*CUser)(user_t* user));
+}sv_user_packs_t;
+void sv_CreateUserPacks(sv_user_packs_t* user);
+void sv_InitUserPacks(sv_user_packs_t* user,int sizeuser,void(*CUser)(sv_user_t* user));

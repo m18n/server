@@ -1,24 +1,24 @@
 #include"core.h"
 
-void CreateUser(user_t* user){
+void sv_CreateUser(sv_user_t* user){
     user->pollptr=NULL;
   
 }
-void user_disconnect(user_t* user,void(*ClearUser)(user_t* user)){
+void sv_user_disconnect(sv_user_t* user,void(*ClearUser)(sv_user_t* user)){
     close(user->pollptr->fd);
     user->pollptr->fd=-1;
     ClearUser(user);
     
 }
-void CreateList(list_t* list){
+void sv_CreateList(sv_list_t* list){
     list->sizelist=0;
     list->start=NULL;
   
 }
-void AddElementList(list_t* list,void* data,int sizedata){
+void sv_AddElementList(sv_list_t* list,void* data,int sizedata){
     
-    node_t* index=list->start;
-    node_t* prev=NULL;
+    sv_node_t* index=list->start;
+    sv_node_t* prev=NULL;
     for(int i=0;i<list->sizelist;i++){
         if(index->next==NULL){
             prev=index;
@@ -28,7 +28,7 @@ void AddElementList(list_t* list,void* data,int sizedata){
         
     }
     if(index==NULL){
-        index=malloc(sizeof(node_t));
+        index=malloc(sizeof(sv_node_t));
         index->sizedata=sizedata;
         index->next=NULL;
         index->data=data;
@@ -39,8 +39,8 @@ void AddElementList(list_t* list,void* data,int sizedata){
         list->start=index;
     list->sizelist++;
 }
-node_t* list_getlast(list_t* list){
-    node_t* index=list->start;
+sv_node_t* sv_list_getlast(sv_list_t* list){
+    sv_node_t* index=list->start;
     for(int i=0;i<list->sizelist;i++){
         if(index->next!=NULL){
             index=index->next;
@@ -51,19 +51,19 @@ node_t* list_getlast(list_t* list){
     }
     return index;
 }
-void CreateArrayD(arrayd_t* array){
+void sv_CreateArrayD(sv_arrayd_t* array){
     array->allsize=0;
     array->realsize=0;
     array->data=NULL;
     array->sizeelement=0;
 }
-void InitArrayd(arrayd_t* array,int sizearray,int sizeelement){
-    CreateArrayD(array);
+void sv_InitArrayd(sv_arrayd_t* array,int sizearray,int sizeelement){
+    sv_CreateArrayD(array);
     array->data=malloc(sizeelement*sizearray);
     array->allsize=sizearray;
     array->sizeelement=sizeelement;
 }
-void arrayd_addelement(arrayd_t* array,void* element){
+void sv_arrayd_addelement(sv_arrayd_t* array,void* element){
     if(array->allsize==array->realsize){
         array->allsize++;
         void* newarr=malloc(array->allsize*array->sizeelement);
@@ -79,6 +79,6 @@ void arrayd_addelement(arrayd_t* array,void* element){
         array->realsize++;
     }
 }
-void DestroyArrayD(arrayd_t* array){
+void sv_DestroyArrayD(sv_arrayd_t* array){
     free(array->data);
 }

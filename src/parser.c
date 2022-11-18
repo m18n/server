@@ -1,5 +1,5 @@
 #include"parser.h"
-int SearchNameKey(json_value* json,const char* name){
+int sv_SearchNameKey(json_value* json,const char* name){
     for(int i=0;i<json->u.object.length;i++){
         if(strcmp(json->u.object.values[i].name,name)==0){
             return i;
@@ -7,7 +7,7 @@ int SearchNameKey(json_value* json,const char* name){
     } 
     return -1;
 }
-json_object_entry* GetNameKey(json_value* json,const char* name){
+json_object_entry* sv_GetNameKey(json_value* json,const char* name){
     for(int i=0;i<json->u.object.length;i++){
         if(strcmp(json->u.object.values[i].name,name)==0){
             return &json->u.object.values[i];
@@ -15,53 +15,53 @@ json_object_entry* GetNameKey(json_value* json,const char* name){
     } 
     return NULL;
 }
-bool CheckKeyAndValue(json_value* json,const char* key,json_type type){
-    int index=SearchNameKey(json,key);
+bool sv_CheckKeyAndValue(json_value* json,const char* key,json_type type){
+    int index=sv_SearchNameKey(json,key);
     if(index==-1)
         return false;
     if(json->u.object.values[index].value->type==type)
         return true;
     return false;   
 }
-void CreateJson_Item(json_item_t* item){
+void sv_CreateJson_Item(sv_json_item_t* item){
     item->name[0]='\0';
     item->strvalue=NULL;
     item->intvalue=0;
     item->bint=false;
 }
-void json_item_setname(json_item_t* item,const char* name){
+void sv_json_item_setname(sv_json_item_t* item,const char* name){
     strcpy(item->name,name);
 }
-void json_item_setintvalue(json_item_t* item,int value){
+void sv_json_item_setintvalue(sv_json_item_t* item,int value){
     item->intvalue=value;
     item->bint=true;
 }
-void json_item_setstrvalue(json_item_t* item,const char* value){
+void sv_json_item_setstrvalue(sv_json_item_t* item,const char* value){
     int size=strlen(value)+1;
     item->strvalue=malloc(size);
     strcpy(item->strvalue,value);
     item->strvalue[size-1]='\0';
 }
-void CreateJson_Construct(json_construct_t* json){
-    InitArrayd(&json->jsonitem,0,sizeof(json_item_t));
+void sv_CreateJson_Construct(sv_json_construct_t* json){
+    sv_InitArrayd(&json->jsonitem,0,sizeof(sv_json_item_t));
 }
-void DestroyJson_Construct(json_construct_t* json){
-    json_item_t* items=json->jsonitem.data;
+void sv_DestroyJson_Construct(sv_json_construct_t* json){
+    sv_json_item_t* items=json->jsonitem.data;
     for(int i=0;i<json->jsonitem.realsize;i++){
         if(items[i].strvalue!=NULL){
             free(items[i].strvalue);
         }
     }
-    DestroyArrayD(&json->jsonitem);
+    sv_DestroyArrayD(&json->jsonitem);
 }
-void json_construct_addelement(json_construct_t* json,json_item_t item){
-    arrayd_addelement(json,&item);
+void sv_json_construct_addelement(sv_json_construct_t* json,sv_json_item_t item){
+    sv_arrayd_addelement(json,&item);
 }
 
-char* json_construct_getstring(json_construct_t* json_c){
+char* sv_json_construct_getstring(sv_json_construct_t* json_c){
     int allsize=2;
     
-    json_item_t* array=json_c->jsonitem.data;
+    sv_json_item_t* array=json_c->jsonitem.data;
     
     for(int i=0;i<json_c->jsonitem.realsize;i++){
         allsize+=5+strlen(array[i].name);//5=|"":, |
@@ -109,10 +109,10 @@ char* json_construct_getstring(json_construct_t* json_c){
     json[allsize]='\0';
     return json;
 }
-char* json_construct_getstring_SEND(json_construct_t* json_c,int* size){
+char* sv_json_construct_getstring_SEND(sv_json_construct_t* json_c,int* size){
     int allsize=2;
     
-    json_item_t* array=json_c->jsonitem.data;
+    sv_json_item_t* array=json_c->jsonitem.data;
     
     for(int i=0;i<json_c->jsonitem.realsize;i++){
         allsize+=5+strlen(array[i].name);//5=|"":, |
