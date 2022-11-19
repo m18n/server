@@ -357,5 +357,5 @@ void sv_GetEventsSocket(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_use
 void sv_ServerStart(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_user_t* us),void(*ClearUser)(sv_user_t*us)){
     pthread_t process_pack;
     pthread_create( &process_pack, NULL, sv_arraypack_process, (void*) &serv->arrpack);
-    sv_GetEventsSocket(&serv,sizeuser,CreateUsere,ClearUser);
+    sv_GetEventsSocket(serv,sizeuser,CreateUsere,ClearUser);
 }
