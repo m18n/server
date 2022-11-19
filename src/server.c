@@ -126,8 +126,8 @@ void sv_arraypack_finishpack(sv_arraypack_t* array,sv_pack_t* pack){
         pthread_mutex_unlock(&array->mtpack);
     }
 }
-void sv_arraypack_process(sv_v2_t* v){
-    sv_arraypack_t* array=v->p1;
+void sv_arraypack_process(sv_arraypack_t* array){
+    
     printf("START PROCESS PACK\n");
     while (true)
     {
@@ -353,4 +353,9 @@ void sv_GetEventsSocket(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_use
             }
         }
     }
+}
+void sv_ServerStart(sv_server_t* serv,int sizeuser,void(*CreateUsere)(sv_user_t* us),void(*ClearUser)(sv_user_t*us)){
+    pthread_t process_pack;
+    pthread_create( &process_pack, NULL, sv_arraypack_process, (void*) &serv->arrpack);
+    sv_GetEventsSocket(&serv,sizeuser,CreateUsere,ClearUser);
 }
