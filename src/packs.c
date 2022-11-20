@@ -108,6 +108,24 @@ void sv_SendPackRes(sv_user_t* user,sv_packres_t* pk,sv_packreq_t* pkreq){
     free(c);
     sv_DestroyJson_Construct(&con);
 }
+void sv_SendPackResIndex(sv_user_t* user,sv_packres_t* pk,int indexpack){
+    sv_json_construct_t con=pk->GetJsonPack(pk);
+    sv_json_item_t jidpack;
+    sv_CreateJson_Item(&jidpack);
+    sv_json_item_setname(&jidpack,"idpack");
+    sv_json_item_setintvalue(&jidpack,pk->idpack);
+    sv_json_construct_addelement(&con,jidpack);
+    sv_json_item_t jindexpack;
+    sv_CreateJson_Item(&jindexpack);
+    sv_json_item_setname(&jindexpack,"indexpack");
+    sv_json_item_setintvalue(&jindexpack,indexpack);
+    sv_json_construct_addelement(&con,jindexpack);
+    int size=0;
+    char* c=sv_json_construct_getstring_SEND(&con,&size);
+    sv_sendall(user->pollptr->fd,c,&size);
+    free(c);
+    sv_DestroyJson_Construct(&con);
+}
 void sv_DestroyPack(sv_pack_t* pack){
     if(pack->data!=NULL)
         free(pack->data);

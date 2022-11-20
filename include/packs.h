@@ -19,7 +19,7 @@ void sv_CreatePackRes(sv_packres_t* pack);
 int sv_sendall(int sock_conn, char *buf, int *len);
 void sv_SendPack(sv_user_t* user,sv_packres_t* pk);
 void sv_SendPackRes(sv_user_t* user,sv_packres_t* pk,sv_packreq_t* pkreq);
-
+void sv_SendPackResIndex(sv_user_t* user,sv_packres_t* pk,int indexpack);
 typedef struct sv_infopackreq{
     int sizepack;
     int idpack;
