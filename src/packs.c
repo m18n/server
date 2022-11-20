@@ -84,6 +84,11 @@ void sv_SendPack(sv_user_t* user,sv_packres_t* pk){
     sv_json_item_setname(&jidpack,"idpack");
     sv_json_item_setintvalue(&jidpack,pk->idpack);
     sv_json_construct_addelement(&con,jidpack);
+    sv_json_item_t jindexpack;
+    sv_CreateJson_Item(&jindexpack);
+    sv_json_item_setname(&jindexpack,"indexpack");
+    sv_json_item_setintvalue(&jindexpack,-1);
+    sv_json_construct_addelement(&con,jindexpack);
     int size=0;
     char* c=sv_json_construct_getstring_SEND(&con,&size);
     sv_sendall(user->pollptr->fd,c,&size);
