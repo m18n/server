@@ -3,6 +3,7 @@
 #include<stdbool.h>
 #include"parser.h"
 #include"core.h"
+extern pthread_mutex_t sv_sendmutex;
 typedef struct sv_packreq{
     int indexpack;
     bool(*JsonToObject)(struct sv_packreq* pack,json_value* json);

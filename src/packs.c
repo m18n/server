@@ -1,4 +1,5 @@
 #include"packs.h"
+pthread_mutex_t sv_sendmutex;
 void sv_CreateUserPacks(sv_user_packs_t* user){
     user->user=NULL;
     user->lastpack=NULL;
@@ -91,7 +92,9 @@ void sv_SendPack(sv_user_t* user,sv_packres_t* pk){
     sv_json_construct_addelement(&con,jindexpack);
     int size=0;
     char* c=sv_json_construct_getstring_SEND(&con,&size);
+    pthread_mutex_lock(&sv_sendmutex);
     sv_sendall(user->pollptr->fd,c,&size);
+    pthread_mutex_unlock(&sv_sendmutex);
     free(c);
     sv_DestroyJson_Construct(&con);
 }
@@ -109,11 +112,14 @@ void sv_SendPackRes(sv_user_t* user,sv_packres_t* pk,sv_packreq_t* pkreq){
     sv_json_construct_addelement(&con,jindexpack);
     int size=0;
     char* c=sv_json_construct_getstring_SEND(&con,&size);
+    pthread_mutex_lock(&sv_sendmutex);
     sv_sendall(user->pollptr->fd,c,&size);
+    pthread_mutex_unlock(&sv_sendmutex);
     free(c);
     sv_DestroyJson_Construct(&con);
 }
 void sv_SendPackResIndex(sv_user_t* user,sv_packres_t* pk,int indexpack){
+    
     sv_json_construct_t con=pk->GetJsonPack(pk);
     sv_json_item_t jidpack;
     sv_CreateJson_Item(&jidpack);
@@ -127,7 +133,9 @@ void sv_SendPackResIndex(sv_user_t* user,sv_packres_t* pk,int indexpack){
     sv_json_construct_addelement(&con,jindexpack);
     int size=0;
     char* c=sv_json_construct_getstring_SEND(&con,&size);
+    pthread_mutex_lock(&sv_sendmutex);
     sv_sendall(user->pollptr->fd,c,&size);
+    pthread_mutex_unlock(&sv_sendmutex);
     free(c);
     sv_DestroyJson_Construct(&con);
 }
