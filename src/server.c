@@ -1,6 +1,7 @@
 #include"server.h"
 
 void sv_ServerInit(sv_server_t* serv,int port,int maxconn){
+    pthread_mutex_init(&sv_sendmutex, NULL);
     sv_InitArrayPack(&serv->arrpack,10000);
     serv->sizesockets=maxconn+1;
     serv->nowconnect=0;
