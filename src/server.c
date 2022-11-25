@@ -135,7 +135,7 @@ void sv_arraypack_process(sv_arraypack_t* array){
         for(int i=0;i<array->sizepacks;i++){
             if(array->getpaks[i]==true){
                 if(array->packs[i].compile==true){
-                    printf("PROCESS PACK\n");
+                    //printf("PROCESS PACK\n");
                     sv_pack_t* p=&array->packs[i];
                     if(p->pack_req!=NULL)
                         p->pack_req->ProcessPack(p->pack_req,p->user);
