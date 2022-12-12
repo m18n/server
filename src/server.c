@@ -36,9 +36,6 @@ void sv_ServerInit(sv_server_t* serv,int port,int maxconn){
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    
-    
-    printf("CONNECT\n");
 }
 void sv_serv_adduserpacks(sv_server_t* serv,void(*CreatePack)(sv_packreq_t* self),int sizeuserpack,int idpack){
     sv_infopackreq_t info;
