@@ -3,9 +3,14 @@
 #include <pthread.h>
 #include"server.h"
 using namespace server;
+class olxclient:public user{
+ int a=0;   
+};
 int main(){
     serv sv;
-    sv.initserver(2,0);
-    sv.start_server();
+    sv.initserver(9999,3);
+    sv.start_server(new olxclient,sizeof(olxclient));
+    
+    
     return 0;
 }
