@@ -51,20 +51,27 @@ class array {
   int size();
   T& operator[](int index);
 };
+class clients {
+ private:
+  std::vector<pollfd> sockets;
+  array<user> users;
 
+ public:
+  clients() {}
+  void initclients(int maxclients, user* user, int sizeuser);
+};
 class serv {
  private:
   int sock;
   struct sockaddr_in address;
   int port;
   int maxconn;
-  std::vector<pollfd> sockets;
-  array<user> users;
+  clients cls;
   int nowconnect;
 
  private:
-  void getpack();
-  void processpack();
+  // void getpack();
+  // void processpack();
 
  public:
   serv();

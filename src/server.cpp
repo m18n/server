@@ -82,18 +82,25 @@ void server::serv::initserver(int port, int maxconn) {
   this->port = port;
   this->maxconn = maxconn;
 }
-void server::serv::getpack() {
-  sockets[0].fd = sock;
-  sockets[0].events = POLLIN;
-  sockets[0].revents = 0;
-  for (int i = 0; i < sockets.size(); i++) {
-    sockets[i].fd = -1;
+void server::clients::initclients(int maxclients, user* user, int sizeuser) {
+  users.setelementsize(sizeuser);
+  sockets.resize(maxclients);
+  users.resize(maxclients);
+  for (int i = 0; i < maxclients; i++) {
+    memcpy(&users[i], user, sizeuser);
   }
 }
-void server::serv::processpack() {}
+// void server::serv::getpack() {
+//   sockets[0].fd = sock;
+//   sockets[0].events = POLLIN;
+//   sockets[0].revents = 0;
+//   for (int i = 0; i < sockets.size(); i++) {
+//     sockets[i].fd = -1;
+//   }
+// }
+// void server::serv::processpack() {}
 
 void server::serv::start_server(user* user, int sizeuser) {
-  users.setelementsize(sizeuser);
   if ((this->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     throw NetworkExeption("SOCKET FAILD\n");
   }
@@ -111,11 +118,7 @@ void server::serv::start_server(user* user, int sizeuser) {
   }
   if (maxconn == -1)
     maxconn = 100000;
-  sockets.resize(maxconn);
-  users.resize(maxconn);
-  for (int i = 0; i < maxconn; i++) {
-    memcpy(&users[i], user, sizeuser);
-  }
+  cls.initclients(maxconn, user, sizeuser);
   if (listen(sock, maxconn) < 0) {
     throw NetworkExeption("listen\n");
   }
