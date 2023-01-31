@@ -1,13 +1,25 @@
 #pragma once
 #include <iostream>
 namespace server {
-class NetworkExeption : public std::exception {
+class ServerExeption : public std::exception {
+ protected:
+  std::string message;
+
+ public:
+  virtual char* what();
+};
+class NetworkExeption : public ServerExeption {
  private:
   std::string message;
 
  public:
   NetworkExeption(std::string message);
-  char* what();
 };
+class MemoryExeption : public ServerExeption {
+ private:
+  std::string message;
 
+ public:
+  MemoryExeption(std::string message);
+};
 }  // namespace server

@@ -47,10 +47,11 @@ class array {
   array(int number);
   array(int number, int elementsize);
   void setelementsize(int elmsize);
-  int size();
   void resize(int n);
+  int size();
   T& operator[](int index);
 };
+
 class serv {
  private:
   int sock;

@@ -20,6 +20,7 @@ server::array<T>::array(int number, int elementsize) : array() {
   elementsize = elementsize;
   arrptr = (char*)malloc(elementsize * number);
 }
+
 template <class T>
 void server::array<T>::setelementsize(int elmsize) {
   if (number != 0) {
@@ -39,10 +40,7 @@ void server::array<T>::setelementsize(int elmsize) {
   }
   elementsize = elmsize;
 }
-template <class T>
-int server::array<T>::size() {
-  return this->number;
-}
+
 template <class T>
 void server::array<T>::resize(int n) {
   if (this->capacitynumber < n) {
@@ -55,12 +53,16 @@ void server::array<T>::resize(int n) {
 
   this->number = n;
 }
+
+template <class T>
+int server::array<T>::size() {
+  return this->number;
+}
 template <class T>
 T& server::array<T>::operator[](int index) {
   if (index >= number) {
     std::cout << "error index array\n";
-    T d;
-    return d;
+    throw MemoryExeption("index array\n");
   } else {
     char* a = arrptr + (elementsize * index);
     T* d = (T*)a;
@@ -89,6 +91,7 @@ void server::serv::getpack() {
   }
 }
 void server::serv::processpack() {}
+
 void server::serv::start_server(user* user, int sizeuser) {
   users.setelementsize(sizeuser);
   if ((this->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -106,18 +109,14 @@ void server::serv::start_server(user* user, int sizeuser) {
   if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0) {
     throw NetworkExeption("bind failed\n");
   }
-  int r = 0;
-  if (maxconn == -1) {
-    sockets.resize(100000);
-    users.resize(100000);
-    r = listen(sock, 100000);
-  } else if (maxconn > 0) {
-    sockets.resize(maxconn);
-    users.resize(maxconn);
-    r = listen(sock, maxconn);
+  if (maxconn == -1)
+    maxconn = 100000;
+  sockets.resize(maxconn);
+  users.resize(maxconn);
+  for (int i = 0; i < maxconn; i++) {
+    memcpy(&users[i], user, sizeuser);
   }
-
-  if (r < 0) {
+  if (listen(sock, maxconn) < 0) {
     throw NetworkExeption("listen\n");
   }
 }
