@@ -51,13 +51,10 @@ class array {
   int size();
   T& operator[](int index);
 };
-class clients {
- private:
+
+struct clients{
   std::vector<pollfd> sockets;
   array<user> users;
-
- public:
-  clients() {}
   void initclients(int maxclients, user* user, int sizeuser);
 };
 class serv {
