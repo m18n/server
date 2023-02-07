@@ -99,7 +99,8 @@ void server::clients::initclients(int maxclients, user* user, int sizeuser) {
 //   }
 // }
 // void server::serv::processpack() {}
-
+void server::serv::getevent() {}
+void server::serv::processpack() {}
 void server::serv::start_server(user* user, int sizeuser) {
   if ((this->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     throw NetworkExeption("SOCKET FAILD\n");
@@ -122,4 +123,8 @@ void server::serv::start_server(user* user, int sizeuser) {
   if (listen(sock, maxconn) < 0) {
     throw NetworkExeption("listen\n");
   }
+  std::thread gt(&serv::getevent, this);
+  gt.detach();
+  std::thread pp(&serv::processpack, this);
+  pp.detach();
 }

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include "exeception.h"
+#include<thread>
 // typedef struct sv_server{
 //     int sock_f;
 //     struct sockaddr_in address;
@@ -69,7 +70,8 @@ class serv {
  private:
   // void getpack();
   // void processpack();
-
+  void getevent();
+  void processpack();
  public:
   serv();
   serv(int port, int maxconn);
