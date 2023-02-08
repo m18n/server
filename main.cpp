@@ -15,7 +15,9 @@ int main() {
 
   sv.initserver(9999, 3);
   sv.start_server(new olxclient(), sizeof(olxclient));
-
+  while(true){
+    
+  }
   // sv.users.resize(2);
   return 0;
 }

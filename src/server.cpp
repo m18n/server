@@ -69,39 +69,10 @@ T& server::array<T>::operator[](int index) {
     return *d;
   }
 }
-server::serv::serv() {
-  sock = -1;
-  port = 9999;
-  maxconn = -1;
-  nowconnect = 0;
-}
-server::serv::serv(int port, int maxconn) : serv() {
-  initserver(port, maxconn);
-}
-void server::serv::initserver(int port, int maxconn) {
-  this->port = port;
-  this->maxconn = maxconn;
-}
-void server::clients::initclients(int maxclients, user* user, int sizeuser) {
-  users.setelementsize(sizeuser);
-  sockets.resize(maxclients);
-  users.resize(maxclients);
-  for (int i = 0; i < maxclients; i++) {
-    memcpy(&users[i], user, sizeuser);
-  }
-}
-// void server::serv::getpack() {
-//   sockets[0].fd = sock;
-//   sockets[0].events = POLLIN;
-//   sockets[0].revents = 0;
-//   for (int i = 0; i < sockets.size(); i++) {
-//     sockets[i].fd = -1;
-//   }
-// }
-// void server::serv::processpack() {}
-void server::serv::getevent() {}
-void server::serv::processpack() {}
-void server::serv::start_server(user* user, int sizeuser) {
+void server::NetworkEvent::initsock(int port,
+                                    int maxclients,
+                                    user* user,
+                                    int sizeuser) {
   if ((this->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     throw NetworkExeption("SOCKET FAILD\n");
   }
@@ -117,14 +88,73 @@ void server::serv::start_server(user* user, int sizeuser) {
   if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0) {
     throw NetworkExeption("bind failed\n");
   }
-  if (maxconn == -1)
-    maxconn = 100000;
-  cls.initclients(maxconn, user, sizeuser);
-  if (listen(sock, maxconn) < 0) {
+  if (maxclients == -1)
+    maxclients = 100000;
+  if (listen(sock, maxclients) < 0) {
     throw NetworkExeption("listen\n");
   }
-  std::thread gt(&serv::getevent, this);
+  users.initusers(sock, maxclients, user, sizeuser);
+
+  this->sock = sock;
+}
+
+void server::NetworkEvent::newpack() {
+  
+}
+void server::NetworkEvent::addlastpack() {}
+void server::NetworkEvent::getevent() {
+  socklen_t addrlen = sizeof(address);
+
+  while (1) {
+    bool isconn = false;
+    usersock us = users.geteventusers(&isconn);
+    if (isconn) {
+      // new conn
+      addrlen = sizeof(address);
+      int newconnect = accept(sock, (struct sockaddr*)&address, &addrlen);
+      us.sock = newconnect;
+      users.regusersocket(us);
+    } else {
+      // pack
+      if (users.emptylastpack(us.iduser)) {
+        // new pack
+        char* headpack[8];
+        int length = recv(us.sock, headpack, 8, NULL);
+        if (length < 0) {
+          users.disconnect(us.iduser);
+        } else if (length > 0 && length < 8) {
+          pack pk;
+          memcpy(pk.headpack, headpack, 8);
+          pk.realsize = length;
+          users.addlastpack(us.iduser, pk);
+        }
+      } else {
+        // lastpack
+      }
+    }
+  }
+}
+void server::NetworkEvent::processpack() {}
+void server::NetworkEvent::start() {
+  std::thread gt(&NetworkEvent::getevent, this);
   gt.detach();
-  std::thread pp(&serv::processpack, this);
+  std::thread pp(&NetworkEvent::processpack, this);
   pp.detach();
+}
+server::serv::serv() {
+  port = 9999;
+  maxconn = -1;
+  nowconnect = 0;
+}
+server::serv::serv(int port, int maxconn) : serv() {
+  initserver(port, maxconn);
+}
+void server::serv::initserver(int port, int maxconn) {
+  this->port = port;
+  this->maxconn = maxconn;
+}
+
+void server::serv::start_server(user* user, int sizeuser) {
+  net.initsock(port, maxconn, user, sizeuser);
+  net.start();
 }
