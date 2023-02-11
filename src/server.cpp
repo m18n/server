@@ -159,6 +159,7 @@ void server::serv::initserver(int port, int maxconn, user* user, int sizeuser) {
     maxconn = 100000;
   initsocket(user, sizeuser);
   users.initusers(sock, maxconn, user, sizeuser);
+  delete user;
   this->init = true;
 }
 server::serv::serv() {

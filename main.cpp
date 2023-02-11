@@ -11,13 +11,13 @@ class olxclient : public user {
   int geta() { return a; }
 };
 int main() {
-  serv sv;
-
-  sv.initserver(9999, 3);
-  sv.start_server(new olxclient(), sizeof(olxclient));
-  while(true){
+  serv sv(9999,3,new olxclient(),sizeof(olxclient));
+  sv.start_server();
+  while (true)
+  {
     
   }
-  // sv.users.resize(2);
+  
+  
   return 0;
 }
