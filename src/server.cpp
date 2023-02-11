@@ -3,14 +3,14 @@ void server::Users::initusers(int sock,
                               int maxusers,
                               user* user,
                               int sizeuser) {
-  clientusers.setelementsize(sizeuser);
-  clientusers.resize(maxusers);
-  serverusers.resize(maxusers);
+  usersclient.setelementsize(sizeuser);
+  usersclient.resize(maxusers);
+  usersserver.resize(maxusers);
   userssockets.resize(maxusers);
   for (int i = 0; i < maxusers; i++) {
-    memcpy(&clientusers[i], user, sizeuser);
+    memcpy(&usersclient[i], user, sizeuser);
     userssockets[i].fd = -1;
-    serverusers[i].iduser = i;
+    usersserver[i].iduser = i;
   }
   userssockets[0].fd = sock;
   userssockets[0].events = POLLIN;
@@ -24,6 +24,7 @@ void server::Users::regusersocket(int sock) {
       userssockets[i].fd = sock;
       userssockets[i].events = POLLIN;
       userssockets[i].revents = 0;
+      break;
     }
   }
 }
@@ -46,20 +47,34 @@ void server::Users::geteventusers(std::vector<usersock>* retarray) {
     throw NetworkExeption("NONE");
 }
 bool server::Users::emptylastpack(int iduser) {
-  if (serverusers[iduser].lastpack.data == NULL)
+  if (usersserver[iduser].lastpack.data == NULL)
     return true;
 
   return false;
 }
 void server::Users::reglastpack(int iduser, pack pk) {
-  serverusers[iduser].lastpack = pk;
+  usersserver[iduser].lastpack = pk;
 }
 void server::Users::disconnect(int iduser) {
   // clear
-  serverusers[iduser].Clear();
+  userssockets[iduser].fd = -1;
+  usersserver[iduser].Clear();
+  if (iduser == uparrays) {
+    bool find = false;
+    for (int i = uparrays; i > 0; i--) {
+      if (userssockets[i].fd != -1) {
+        uparrays = i;
+        find = true;
+        break;
+      }
+    }
+    if (find == false) {
+      uparrays = 0;
+    }
+  }
 }
 void server::Users::adddata(int iduser, int addsize) {
-  serverusers[iduser].lastpack.realsize += addsize;
+  usersserver[iduser].lastpack.realsize += addsize;
 }
 template <class T>
 server::array<T>::array() {

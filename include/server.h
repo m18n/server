@@ -57,7 +57,7 @@ struct pack {
   char* data = NULL;
   int allsize = 0;
 };
-struct serveruser {
+struct userserver {
  public:
   int iduser = 0;
   pack lastpack;
@@ -75,8 +75,8 @@ struct usersock {
 class Users {
  private:
   std::vector<pollfd> userssockets;
-  array<user> clientusers;
-  std::vector<serveruser> serverusers;
+  array<user> usersclient;
+  std::vector<userserver> usersserver;
   int uparrays = 0;
 
  public:
