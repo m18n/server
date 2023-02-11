@@ -58,14 +58,17 @@ struct pack {
   int allsize = 0;
 };
 struct serveruser {
-  int idpack=0;
+ public:
+  int iduser = 0;
   pack lastpack;
+
+ public:
   void Clear() {
     pack n;
     lastpack = n;
   }
 };
-struct usersock{
+struct usersock {
   int sock;
   int iduser;
 };
@@ -74,95 +77,37 @@ class Users {
   std::vector<pollfd> userssockets;
   array<user> clientusers;
   std::vector<serveruser> serverusers;
-  int localindexpoll = 0;
+  int uparrays = 0;
 
  public:
-  void initusers(int sock, int maxusers, user* user, int sizeuser) {
-    clientusers.setelementsize(sizeuser);
-    clientusers.resize(maxusers);
-    serverusers.resize(maxusers);
-    userssockets.resize(maxusers);
-    localindexpoll=maxusers-1;
-    for (int i = 0; i < maxusers; i++) {
-      memcpy(&clientusers[i], user, sizeuser);
-      userssockets[i].fd = -1;
-      serverusers[i].idpack=i;
-    }
-    userssockets[0].fd = sock;
-    userssockets[0].events = POLLIN;
-    userssockets[0].revents = 0;
-  }
-  void regusersocket(usersock user){
-
-  }
-  usersock geteventusers(bool* newconn) {
-    if (localindexpoll == userssockets.size() - 1) {
-      int ret = poll(&userssockets[0], userssockets.size(), -1);
-      if (ret < 0) {
-        throw NetworkExeption("ERROR POLL");
-      }
-      localindexpoll=0;
-    }
-    for (int i = localindexpoll; i < userssockets.size(); i++) {
-      if (userssockets[i].revents && POLLIN) {
-        userssockets[i].revents &= ~POLLIN;
-        if(i==0){
-          *newconn=true;
-        }else{
-          *newconn=false;
-        }
-        usersock s;
-        s.iduser=i;
-        s.sock=userssockets[i].fd;
-        localindexpoll++;
-        return s;
-      }
-    }
-    throw NetworkExeption("NONE");
-  }
-  bool emptylastpack(int iduser) {
-    if (serverusers[iduser].lastpack.data == NULL)
-      return true;
-
-    return false;
-  }
-  void addlastpack(int iduser, pack pk) { serverusers[iduser].lastpack = pk; }
-  void disconnect(int iduser) {
-    // clear
-    serverusers[iduser].Clear();
-  }
-  void adddata(int iduser, int addsize) {
-    serverusers[iduser].lastpack.realsize += addsize;
-  }
-};
-class NetworkEvent {
- private:
-  Users users;
-  std::vector<pack> packs;
-  int sock;
-  struct sockaddr_in address;
-  int port;
-
- private:
-  void getevent();
-  void processpack();
-  void newpack();
-  void addlastpack();
- public:
-  void initsock(int sock, int maxclient, user* user, int sizeuser);
-  void start();
+  void initusers(int sock, int maxusers, user* user, int sizeuser);
+  void regusersocket(int sock);
+  void geteventusers(std::vector<usersock>* retarray);
+  bool emptylastpack(int iduser);
+  void reglastpack(int iduser, pack pk);
+  void disconnect(int iduser);
+  void adddata(int iduser, int addsize);
 };
 class serv {
  private:
   int port;
   int maxconn;
-  NetworkEvent net;
+  int sock;
+  struct sockaddr_in address;
   int nowconnect;
+  Users users;
+  std::vector<pack> packs;
+  bool init;
+
+ private:
+  void getevent();
+  void processpack();
+  void initsocket(user* user, int sizeuser);
 
  public:
   serv();
-  serv(int port, int maxconn);
-  void initserver(int port, int maxconn);
-  void start_server(user* user, int sizeuser);
+  serv(int port, int maxconn, user* user, int sizeuser);
+  void initserver(int port, int maxconn, user* user, int sizeuser);
+  void start_server();
 };
 }  // namespace server
