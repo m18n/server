@@ -24,17 +24,18 @@ void server::Users::regusersocket(int sock) {
       userssockets[i].fd = sock;
       userssockets[i].events = POLLIN;
       userssockets[i].revents = 0;
+      std::cout<<"CONNECT\n";
       break;
     }
   }
 }
 void server::Users::geteventusers(std::vector<usersock>* retarray) {
-  int ret = poll(&userssockets[0], uparrays, -1);
+  int ret = poll(&userssockets[0], uparrays+1, -1);
   if (ret < 0) {
     throw NetworkExeption("ERROR POLL");
   }
   retarray->resize(0);
-  for (int i = 0; i < uparrays; i++) {
+  for (int i = 0; i < uparrays+1; i++) {
     if (userssockets[i].revents && POLLIN) {
       userssockets[i].revents &= ~POLLIN;
       usersock s;
@@ -59,12 +60,14 @@ void server::Users::disconnect(int iduser) {
   // clear
   userssockets[iduser].fd = -1;
   usersserver[iduser].Clear();
+  std::cout<<"DISCONNECT\n";
   if (iduser == uparrays) {
     bool find = false;
     for (int i = uparrays; i > 0; i--) {
       if (userssockets[i].fd != -1) {
         uparrays = i;
         find = true;
+        
         break;
       }
     }
@@ -198,8 +201,8 @@ void server::serv::getevent() {
       if (arrus[i].iduser == 0) {
         // new conn
         addrlen = sizeof(address);
-        int sock = accept(sock, (struct sockaddr*)&address, &addrlen);
-        users.regusersocket(sock);
+        int sk = accept(sock, (struct sockaddr*)&address, &addrlen);
+        users.regusersocket(sk);
       } else {
         us = &arrus[i];
         // pack
